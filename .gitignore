@@ -1,0 +1,29 @@
+# Environment — never commit real credentials
+.env
+.env.local
+.env.*.local
+
+# Personal writing profile — contains your real messages and voice
+voice.txt
+
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/
+
+# Editor
+.vscode/
+.idea/
+*.swp

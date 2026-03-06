@@ -1,0 +1,39 @@
+# Your writing voice profile
+# Copy this file to voice.txt and fill it in with YOUR actual writing style.
+# voice.txt is gitignored — it stays on your machine only.
+#
+# The more honest and specific you are, the better the bot will write like you.
+
+## Style in one line
+[Describe your writing style in one sentence — e.g. "Short, direct, casual. Sounds like a text, not an email."]
+
+## Key traits
+- [e.g. Short sentences. One idea per sentence.]
+- [e.g. Never uses filler openers like "I hope this finds you well"]
+- [e.g. Only ONE ask per message]
+- [e.g. Casual CTAs: "would you be open to", "worth a look?"]
+- [e.g. Signs off as just "Your First Name"]
+- [e.g. No emojis in cold outreach]
+- [e.g. Never uses corporate words: "synergies", "leverage", "touch base"]
+
+## Real examples of your writing (paste 2-3 actual messages you've sent)
+
+### Example 1 — cold opener
+[Paste a real cold message you sent]
+
+### Example 2 — follow-up or mid-conversation
+[Paste a real follow-up message]
+
+### Example 3 — the pitch moment
+[Paste how you actually pitch your product]
+
+## Cold outreach formula (from your patterns)
+Line 1: [How you typically open — e.g. reference something specific about them]
+Line 2: [What you say about your product — e.g. one sentence, no jargon]
+Line 3: [Your typical CTA — e.g. "would you be open to..."]
+Sign-off: [How you sign off — e.g. "— Your Name"]
+
+## What NOT to do
+- [e.g. Don't write 4+ paragraph emails]
+- [e.g. Don't stack multiple questions]
+- [e.g. Don't use formal closings for startup/tech people]
