@@ -145,6 +145,25 @@ function extractText(result: { content: Array<{ type: string; text?: string }> }
     .join('\n');
 }
 
+/**
+ * Remove any trailing assistant message that contains unresolved tool_use blocks.
+ * This can happen when a previous agent run crashed or threw after pushing the
+ * assistant response but before pushing the corresponding tool_result blocks,
+ * leaving history in a state that causes a 400 from the Claude API.
+ */
+function sanitizeHistory(history: Anthropic.MessageParam[]) {
+  if (history.length === 0) return;
+  const last = history[history.length - 1];
+  if (last.role === 'assistant' && Array.isArray(last.content)) {
+    const hasOrphanedToolUse = (last.content as Array<{ type: string }>).some(
+      (b) => b.type === 'tool_use'
+    );
+    if (hasOrphanedToolUse) {
+      history.pop();
+    }
+  }
+}
+
 async function runTool(name: string, input: Record<string, unknown>): Promise<string> {
   switch (name) {
     case 'find_contacts':    return extractText(await handleFindContacts(input));
@@ -162,6 +181,10 @@ async function runTool(name: string, input: Record<string, unknown>): Promise<st
 export async function runAgent(chatId: number, userMessage: string): Promise<string> {
   if (!histories.has(chatId)) histories.set(chatId, []);
   const history = histories.get(chatId)!;
+
+  // Recover from any previous incomplete tool-use cycle (e.g. crash/timeout
+  // after the assistant response was appended but before tool results were).
+  sanitizeHistory(history);
 
   history.push({ role: 'user', content: userMessage });
 
@@ -201,22 +224,31 @@ export async function runAgent(chatId: number, userMessage: string): Promise<str
         (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
       );
 
-      // Execute all tool calls and collect results
-      const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
-        toolUseBlocks.map(async (block) => {
-          let result: string;
-          try {
-            result = await runTool(block.name, block.input as Record<string, unknown>);
-          } catch (err) {
-            result = `Error: ${err instanceof Error ? err.message : String(err)}`;
-          }
-          return {
-            type: 'tool_result' as const,
-            tool_use_id: block.id,
-            content: result,
-          };
-        })
-      );
+      // Execute all tool calls and collect results.
+      // Wrap in try/catch so that if Promise.all itself throws (edge case),
+      // we pop the orphaned assistant message before propagating the error.
+      let toolResults: Anthropic.ToolResultBlockParam[];
+      try {
+        toolResults = await Promise.all(
+          toolUseBlocks.map(async (block) => {
+            let result: string;
+            try {
+              result = await runTool(block.name, block.input as Record<string, unknown>);
+            } catch (err) {
+              result = `Error: ${err instanceof Error ? err.message : String(err)}`;
+            }
+            return {
+              type: 'tool_result' as const,
+              tool_use_id: block.id,
+              content: result,
+            };
+          })
+        );
+      } catch (err) {
+        // Remove the orphaned assistant message so history stays consistent.
+        history.pop();
+        throw err;
+      }
 
       history.push({ role: 'user', content: toolResults });
       continue;
